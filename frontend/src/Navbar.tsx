@@ -1,31 +1,25 @@
-import "./navbar.css";
+import React from 'react';
+import { Link } from 'react-router-dom';
+import './Navbar.css';
 
-function Navbar() {
-  return (
-    <div className="navbar">
-      <div className="navbar-logo">
-        <img src="/src/assets/radar.svg" alt="Logo" />
-      </div>  
-      <a href="/">
-        <span className="icon">🏠</span> Home
-      </a>
-      <a href="/explore">
-        <span className="icon">🔍</span> Explore
-      </a>
-      <a href="/recommended">
-        <span className="icon">📡</span> MastoRadar
-      </a>
-      <a href="/live">
-        <span className="icon">🌐</span> Live Feeds
-      </a>
-      <a href="/favorites">
-        <span className="icon">⭐</span> Favorites
-      </a>
-      <a href="/settings">
-        <span className="icon">⚙️</span> Preferences
-      </a>
-    </div>
-  );
+interface NavbarProps {
+  setCurrentPage: (page: "Home" | "Explore" | "MastoRadar" | "Live") => void;
 }
+
+const Navbar: React.FC<NavbarProps> = ({ setCurrentPage }) => {
+  return (
+    <nav className="navbar">
+      <Link className="navbar-logo" to="/">
+          <img src="src/assets/radar.svg" alt="Logo" />
+        </Link>
+      <ul className="navbar-links">
+        <li><Link to="/" onClick={() => setCurrentPage("Home")}><span className="icon">🏠</span> Home</Link></li>
+        <li><Link to="/explore" onClick={() => setCurrentPage("Explore")}><span className="icon">🔍</span> Explore</Link></li>
+        <li><Link to="/recommended" onClick={() => setCurrentPage("MastoRadar")}><span className="icon">📡</span> MastoRadar</Link></li>
+        <li><Link to="/live" onClick={() => setCurrentPage("Live")}><span className="icon">📺</span> Live Feed</Link></li>
+      </ul>
+    </nav>
+  );
+};
 
 export default Navbar;

@@ -12,6 +12,7 @@
 }
 
 .feed-container {
+  display: flex;
   margin-right: 0.5rem;
   margin-left: 15rem;
 }
