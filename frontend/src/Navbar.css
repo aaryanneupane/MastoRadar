@@ -1,0 +1,69 @@
+/* Navbar Styles */
+
+.navbar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  width: 30em; /* Adjust width as needed */
+  padding: 1.25em; /* 20px if font size = 16px */
+  box-sizing: border-box;
+  color: #ffffff;
+  background-color: #181821; /* Ensure the background color matches your design */
+  overflow-y: auto; /* Allow scrolling within the navbar if content overflows */
+  border-left: solid 1px #2d2d3f;
+}
+
+.navbar a {
+  display: flex;
+  align-items: center;
+  padding: 0.3em 0.9375em; /* 10px 15px */
+  border-radius: 0.3125em; /* 5px */
+  color: #ddd9e8; /* Default color */
+  text-decoration: none;
+  margin-bottom: 0.625em; /* 10px */
+  font-size: 1em; /* Relative to the parent's font size */
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.navbar a:hover {
+  color: #ffffff; /* White on hover */
+}
+
+.navbar a.active {
+  color: #7f80e7; /* Active state color */
+}
+
+.navbar-logo {
+  width: 12em;
+  padding-bottom: 1em;
+  display: flex;
+}
+
+.navbar .icon {
+  margin-right: 0.9375em; /* 15px */
+  font-size: 1.25em; /* 20px */
+}
+
+.navbar h1 {
+  font-size: 1.375em; /* 22px */
+  margin-bottom: 1.25em; /* 20px */
+  text-align: center;
+}
+
+.navbar-footer {
+  margin-top: auto;
+  font-size: 0.75em; /* 12px */
+  text-align: center;
+  color: #888888;
+}
+
+.navbar-footer a {
+  color: #888888;
+  text-decoration: none;
+}
+
+.navbar-footer a:hover {
+  color: #ffffff;
+}
