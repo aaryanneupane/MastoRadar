@@ -1,12 +1,14 @@
 from typing import Union
 from mastodon import Mastodon
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Query
 from fastapi.responses import RedirectResponse
 from dotenv import load_dotenv
 import os
 from fastapi.middleware.cors import CORSMiddleware
 import httpx
 from auth import AuthHandler
+from models.Recommender import Recommender
+import numpy as np
 
 load_dotenv()
 
@@ -28,10 +30,52 @@ unauthorized_mastodon = Mastodon(
     api_base_url=os.getenv("MASTODON_API_BASE_URL")
 )
 
-data = None
+recommender = Recommender(mastodon)
+
+def numpy_to_python(obj):
+    """
+    Recursively convert numpy types to Python types for JSON serialization.
+    """
+    if isinstance(obj, (np.integer, np.floating)):
+        return obj.item()  # Converts numpy int/float to Python int/float
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()  # Converts numpy array to list
+    elif isinstance(obj, dict):
+        return {key: numpy_to_python(value) for key, value in obj.items()}
+    elif isinstance(obj, list):
+        return [numpy_to_python(value) for value in obj]
+    return obj
+
 
 @app.get("/")
 def read_root():
+    return {"message": "Welcome to Mastodon Recommender API!"}
+
+@app.get("/getRecommendations")
+def getRecommendations():
+    """
+    Fetch similar posts based on the user's favorites.
+    :param top_n: Number of recommendations to return.
+    :param limit: Number of public posts to analyze.
+    :return: List of recommended posts.
+    """
+    try:
+        recommendations = recommender.get_similar_posts()
+        safe_recommendations = numpy_to_python(recommendations)
+        return safe_recommendations
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generating recommendations: {str(e)}")
+
+
+@app.get("/setApi")
+def setApi():
+    global mastodon
+    try:  
+        mastodon.app_verify_credentials()
+        global data
+        data = DataFetcher(mastodon)
+        return {"message": "Successfully connected to API"}
     return {"Hello": "World"}
 
 @app.get("/login")
@@ -98,7 +142,7 @@ def logout():
 
 # @app.get("/getPublicTimeline")
 # def getPublicTimeline():
-#     return unauthorized_mastodon.timeline_public()¨
+#     return unauthorized_len(mastodon.timeline_public())¨
 
 @app.get("/getExploreTimeline")
 async def getPublicTimeline():
