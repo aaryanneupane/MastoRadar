@@ -80,7 +80,7 @@ def setApi():
 
 @app.get("/getPublicTimeline")
 def getPublicTimeline():
-    return len(mastodon.timeline_public())
+    return mastodon.timeline_public()
 
 @app.get("/getHomeTimeline")
 def getHomeTimeline():
@@ -89,6 +89,10 @@ def getHomeTimeline():
 @app.get("/getLocalTimeline")
 def getLocalTimeline():
     return mastodon.timeline_local()
+
+@app.get("/getFavourites")
+def getFavourites():
+    return mastodon.favourites()
 
 
 # HOW TO FETCH THE EXPLORE TIMELINE (FORMATED AS A JSON OBJECT)

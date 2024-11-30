@@ -15,11 +15,28 @@ interface Post {
   media_attachments: {
     url: string;
     description: string;
-  }[];
+  };
+}
+
+interface RecommendationPost {
+  post: {
+    account: {
+      display_name: string;
+      username: string;
+      avatar: string;
+      url: string;
+    };
+    content: string;
+    media_attachments: {
+      url: string;
+      description: string;
+    };
+  }
+  similarity: number;
 }
 
 function App() {
-  const [data, setData] = useState<Post[]>([]);
+  const [data, setData] = useState<Post[] | RecommendationPost>([]);
   const [maxPages, setMaxPages] = useState(10);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState<"Home" | "Explore" | "MastoRadar" | "Live">('Home');
@@ -33,7 +50,8 @@ function App() {
       //No direct API endpint for Explore, so we fetch the Public Timeline instead
       fetchRecommendations('/getPublicTimeline');
     } else if (currentPage === 'MastoRadar') {
-      setData([])
+      console.log('Fetching Recommendations');
+      fetchRecommendations('/getRecommendations');
       //TODO: Implement Recommender System
     } else if (currentPage === 'Live') {
       console.log('Fetching Live Feed (.social)');
@@ -51,8 +69,16 @@ function App() {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      const resdata: Post[] = await response.json();
-      setData(resdata);
+      const resdata = await response.json();
+      if (endpoint === '/getRecommendations') {
+        const mappedData = resdata.map((recommendation: RecommendationPost) => recommendation.post);
+        console.log(mappedData.length); 
+        console.log(mappedData);
+        setData(mappedData);
+      } else {
+        setData(resdata);
+        console.log(resdata)
+      }
     } catch (error) {
       console.error("Error fetching recommendations:", error);
     }
@@ -69,13 +95,13 @@ function App() {
       <div className="app-container">
         <div className="feed-container">
           <Routes>
-            <Route path="/" element={<Feed data={data} selectImage={selectImage} selectedImage={selectedImage} setSelectedImage={setSelectedImage} fetchMorePages={fetchMorePages} title="🏠Home"/>} />
-            <Route path="/explore" element={<Feed data={data} selectImage={selectImage} selectedImage={selectedImage} setSelectedImage={setSelectedImage} fetchMorePages={fetchMorePages} title="🔍Explore"/>} />
-            <Route path="/recommended" element={<Feed data={data} selectImage={selectImage} selectedImage={selectedImage} setSelectedImage={setSelectedImage} fetchMorePages={fetchMorePages} title="📡Recommended"/>} />
-            <Route path="/live" element={<Feed data={data} selectImage={selectImage} selectedImage={selectedImage} setSelectedImage={setSelectedImage} fetchMorePages={fetchMorePages} title="📺Live"/>} />
+            <Route path="/" element={<Feed data={data} selectImage={selectImage} selectedImage={selectedImage} setSelectedImage={setSelectedImage} fetchMorePages={fetchMorePages} title="🏠Home" />} />
+            <Route path="/explore" element={<Feed data={data} selectImage={selectImage} selectedImage={selectedImage} setSelectedImage={setSelectedImage} fetchMorePages={fetchMorePages} title="🔍Explore" />} />
+            <Route path="/recommended" element={<Feed data={data} selectImage={selectImage} selectedImage={selectedImage} setSelectedImage={setSelectedImage} fetchMorePages={fetchMorePages} title="📡Recommended" />} />
+            <Route path="/live" element={<Feed data={data} selectImage={selectImage} selectedImage={selectedImage} setSelectedImage={setSelectedImage} fetchMorePages={fetchMorePages} title="📺Live" />} />
           </Routes>
         </div>
-        <Navbar setCurrentPage={setCurrentPage}/>
+        <Navbar setCurrentPage={setCurrentPage} />
       </div>
     </Router>
   );
@@ -84,7 +110,7 @@ function App() {
 const Feed = ({ data, selectImage, selectedImage, setSelectedImage, fetchMorePages, title }: { data: Post[], selectImage: (imageUrl: string) => void, selectedImage: (string | null), setSelectedImage: (imageUrl: string | null) => void, fetchMorePages: () => void, title: string }) => (
   <div className="max-w-2xl mx-auto py-5 px-4 text-white rounded-lg border border-gray-800 shadow-lg">
     <h1 className="text-3xl font-bold text-center mb-6 text-white">{title}</h1>
-    {data.map((post, index) => (
+    {Array.isArray(data) && data.map((post, index) => (
       <div
         key={index}
         className="post bg-gray-800 p-6 rounded-md border border-gray-700 shadow-sm mb-6 transition-all"
