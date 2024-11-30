@@ -63,7 +63,7 @@ class Recommender:
             favorite_embeddings, public_embeddings
         )
         # return recommendations[:top_n]
-        return recommendations
+        return recommendations[:10]
 
     def _combine_embeddings(self, text_embedding=None, image_embeddings=[]):
         """

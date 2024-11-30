@@ -16,7 +16,24 @@ interface Post {
   media_attachments: {
     url: string;
     description: string;
-  }[];
+  };
+}
+
+interface RecommendationPost {
+  post: {
+    account: {
+      display_name: string;
+      username: string;
+      avatar: string;
+      url: string;
+    };
+    content: string;
+    media_attachments: {
+      url: string;
+      description: string;
+    };
+  }
+  similarity: number;
 }
 
 function App() {
