@@ -162,4 +162,4 @@ cython_debug/
 #.idea/
 
 # Node module ignore
-node_modules/
+frontend/node_modules/
