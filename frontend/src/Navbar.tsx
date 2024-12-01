@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import './Navbar.css';
 
 interface NavbarProps {
-  setCurrentPage: (page: "Home" | "Explore" | "MastoRadar" | "Live") => void;
+  setCurrentPage: (page: "Home" | "Explore" | "MastoRadar" | "Live" | "Login") => void;
 }
 
 const Navbar: React.FC<NavbarProps> = ({ setCurrentPage }) => {
@@ -17,6 +17,7 @@ const Navbar: React.FC<NavbarProps> = ({ setCurrentPage }) => {
         <li><Link to="/explore" onClick={() => setCurrentPage("Explore")}><span className="icon">🔍</span> Explore</Link></li>
         <li><Link to="/recommended" onClick={() => setCurrentPage("MastoRadar")}><span className="icon">📡</span> MastoRadar</Link></li>
         <li><Link to="/live" onClick={() => setCurrentPage("Live")}><span className="icon">📺</span> Live Feed</Link></li>
+        <li><Link to="/login" onClick={() => setCurrentPage("Login")}><span className="icon">🔒</span> Log In</Link></li>
       </ul>
     </nav>
   );

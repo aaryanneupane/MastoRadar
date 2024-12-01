@@ -22,26 +22,28 @@ function App() {
   const [data, setData] = useState<Post[]>([]);
   const [maxPages, setMaxPages] = useState(10);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState<"Home" | "Explore" | "MastoRadar" | "Live">('Home');
+  const [currentPage, setCurrentPage] = useState<"Home" | "Explore" | "MastoRadar" | "Live" | "Login">('Home');
 
   useEffect(() => {
     if (currentPage === 'Home') {
       console.log('Fetching Home');
-      fetchRecommendations('/getHomeTimeline');
+      fetcher('/getHomeTimeline');
     } else if (currentPage === 'Explore') {
       console.log('Fetching Explore');
       //No direct API endpint for Explore, so we fetch the Public Timeline instead
-      fetchRecommendations('/getPublicTimeline');
+      fetcher('/getPublicTimeline');
     } else if (currentPage === 'MastoRadar') {
-      setData([])
+      fetcher('/getRecommendedTimeline');
       //TODO: Implement Recommender System
     } else if (currentPage === 'Live') {
       console.log('Fetching Live Feed (.social)');
-      fetchRecommendations('/getLocalTimeline');
+      fetcher('/getLocalTimeline');
+    } else if (currentPage === 'Login') {
+      login('/login');
     }
   }, [maxPages, currentPage]);
 
-  const fetchRecommendations = async (endpoint: string) => {
+  const fetcher = async (endpoint: string) => {
     try {
       const response = await fetch(`http://127.0.0.1:8000${endpoint}`, {
         headers: {
@@ -51,8 +53,17 @@ function App() {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
+
+      if (endpoint == '/login') {
+        console.log("Redirecting to authorization page...");
+        const authUrl = await response.text();
+        console.log(authUrl);
+        window.location.href = authUrl;
+      } else {
       const resdata: Post[] = await response.json();
       setData(resdata);
+      }
+
     } catch (error) {
       console.error("Error fetching recommendations:", error);
     }
@@ -64,6 +75,27 @@ function App() {
 
   const selectImage = (imageUrl: string) => setSelectedImage(imageUrl);
 
+  const login = async (endpoint: string) => {
+    try {
+      const response = await fetch(`http://127.0.0.1:8000${endpoint}`, {
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+        },
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      console.log("Redirecting to authorization page...");
+      const authUrl = await response.text();
+      const cleanedAuthUrl = authUrl.replace(/^"|"$/g, '');
+      window.location.href = cleanedAuthUrl; // Redirect the user to the authorization URL
+
+    } catch (error) {
+      console.error("Error sending to authorization page:", error);
+    }
+  };
+
+
   return (
     <Router>
       <div className="app-container">
@@ -73,6 +105,7 @@ function App() {
             <Route path="/explore" element={<Feed data={data} selectImage={selectImage} selectedImage={selectedImage} setSelectedImage={setSelectedImage} fetchMorePages={fetchMorePages} title="🔍Explore"/>} />
             <Route path="/recommended" element={<Feed data={data} selectImage={selectImage} selectedImage={selectedImage} setSelectedImage={setSelectedImage} fetchMorePages={fetchMorePages} title="📡Recommended"/>} />
             <Route path="/live" element={<Feed data={data} selectImage={selectImage} selectedImage={selectedImage} setSelectedImage={setSelectedImage} fetchMorePages={fetchMorePages} title="📺Live"/>} />
+            <Route path="login" element={<div>Log In</div>} />
           </Routes>
         </div>
         <Navbar setCurrentPage={setCurrentPage}/>
