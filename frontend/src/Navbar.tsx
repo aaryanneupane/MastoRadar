@@ -4,9 +4,24 @@ import './Navbar.css';
 
 interface NavbarProps {
   setCurrentPage: (page: "Home" | "Explore" | "MastoRadar" | "Live" | "Login") => void;
+  loggedIn: boolean;
+  userId: string | null;
+  userName: string | null;
+  handleLogout: () => void;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ setCurrentPage }) => {
+const Navbar: React.FC<NavbarProps> = ({
+  setCurrentPage,
+  loggedIn,
+  userId,
+  userName,
+  handleLogout,
+}: {
+  setCurrentPage: (page: "Home" | "Explore" | "MastoRadar" | "Live" | "Login") => void;
+  loggedIn: boolean;
+  userId: string | null;
+  userName: string | null;
+  handleLogout: () => void; }) => {
   return (
     <nav className="navbar">
       <Link className="navbar-logo" to="/">
@@ -17,7 +32,20 @@ const Navbar: React.FC<NavbarProps> = ({ setCurrentPage }) => {
         <li><Link to="/explore" onClick={() => setCurrentPage("Explore")}><span className="icon">🔍</span> Explore</Link></li>
         <li><Link to="/recommended" onClick={() => setCurrentPage("MastoRadar")}><span className="icon">📡</span> MastoRadar</Link></li>
         <li><Link to="/live" onClick={() => setCurrentPage("Live")}><span className="icon">📺</span> Live Feed</Link></li>
-        <li><Link to="/login" onClick={() => setCurrentPage("Login")}><span className="icon">🔒</span> Log In</Link></li>
+        <div className="nav-item login-status">
+        {loggedIn ? (
+          <div className="user-info">
+            <button className="logout-button" onClick={handleLogout}>
+              Log Out
+            </button>
+            <p className="user-name">{userName ? `Logged in as: ${userName}` : "Loading..."}</p>
+          </div>
+        ) : (
+          <Link to="/login" onClick={() => setCurrentPage("Login")}>
+            <button className="login-button">Log In</button>
+          </Link>
+        )}
+      </div>
       </ul>
     </nav>
   );

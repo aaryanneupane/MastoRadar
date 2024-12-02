@@ -67,3 +67,49 @@
 .navbar-footer a:hover {
   color: #ffffff;
 }
+
+.nav-item.disabled {
+  color: grey;
+  pointer-events: none; /* Disable clicks */
+}
+
+.login-button {
+  background-color: #0d6ed5;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  margin-top: 0.5rem;
+  cursor: pointer;
+  font-size: 1rem;
+  border-radius: 5px;
+}
+
+.login-button:hover {
+  background-color: #0056b3;
+}
+
+.logout-button {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  margin-top: 0.5rem;
+  cursor: pointer;
+  font-size: 1rem;
+  border-radius: 5px;
+}
+
+.logout-button:hover {
+  background-color: #b02a37;
+}
+
+.user-info {
+  text-align: left;
+  margin-left: 2rem;
+}
+
+.user-name {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: #ccc;
+}
