@@ -96,9 +96,19 @@ def logout():
     authenticated = False
     return {"message": "Logged out successfully"}
 
-@app.get("/getPublicTimeline")
-def getPublicTimeline():
-    return unauthorized_mastodon.timeline_public()
+# @app.get("/getPublicTimeline")
+# def getPublicTimeline():
+#     return unauthorized_mastodon.timeline_public()¨
+
+@app.get("/getExploreTimeline")
+async def getPublicTimeline():
+    async with httpx.AsyncClient() as client:
+        response = await client.get(
+            'https://mastodon.social/api/v1/trends/statuses',
+            # headers={'Authorization': f'Bearer {unauthorized_mastodon.access_token}'}
+        )
+        response.raise_for_status()  # Raise an exception for HTTP errors
+        return response.json()
 
 @app.get("/getLocalTimeline")
 def getLocalTimeline():
@@ -119,6 +129,3 @@ async def getRecommendedTimeline():
         return response.json()
   else:
     raise HTTPException(status_code=400, detail="Not authenticated")
-
-# API for explore page:
-# 'https://mastodon.social/api/v1/trends/statuses'

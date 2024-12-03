@@ -55,9 +55,7 @@ function App() {
     } else if (currentPage === 'Explore') {
       console.log('Fetching Explore');
       navigate('/explore');
-      //No direct API endpint for Explore, so we fetch the Public Timeline for now
-      //TODO: Implement Explore endpoint with correct map to show in timeline (api url is in app.py)
-      fetcher('/getPublicTimeline');
+      fetcher('/getExploreTimeline');
     } else if (currentPage === 'MastoRadar') {
       navigate('/recommended');
       if (loggedIn) {
