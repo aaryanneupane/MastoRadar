@@ -9,12 +9,14 @@
   display: flex;
   justify-content: space-between;
   padding: 1rem;
+  background-color: var(--primary-color);
 }
 
 .feed-container {
   display: flex;
   margin-right: 0.5rem;
   margin-left: 15rem;
+  background-color: var(--);
 }
 
 .logo {
