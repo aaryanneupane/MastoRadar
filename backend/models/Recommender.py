@@ -83,7 +83,7 @@ class Recommender:
         Compute similarity scores between favorite embeddings and public embeddings.
         :param favorite_embeddings: List of embeddings for favorited posts.
         :param public_embeddings: List of tuples (post, embedding) for public posts.
-        :return: Sorted list of posts with similarity scores.
+        :return: Sorted list of posts by highest similarity.
         """
         recommendations = []
         for post, public_embedding in public_embeddings:
@@ -93,4 +93,7 @@ class Recommender:
                     for fav_emb in favorite_embeddings
                 )
                 recommendations.append({"post": post, "similarity": max_similarity})
-        return sorted(recommendations, key=lambda x: x["similarity"], reverse=True)
+        
+        # Sort recommendations by similarity and extract only posts
+        sorted_posts = [rec["post"] for rec in sorted(recommendations, key=lambda x: x["similarity"], reverse=True)]
+        return sorted_posts

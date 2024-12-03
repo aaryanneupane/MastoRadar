@@ -19,23 +19,6 @@ interface Post {
   };
 }
 
-interface RecommendationPost {
-  post: {
-    account: {
-      display_name: string;
-      username: string;
-      avatar: string;
-      url: string;
-    };
-    content: string;
-    media_attachments: {
-      url: string;
-      description: string;
-    };
-  }
-  similarity: number;
-}
-
 function App() {
   const [data, setData] = useState<Post[]>([]);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -103,10 +86,14 @@ function App() {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-
-      const resdata: Post[] = await response.json();
-      setData(resdata);
-
+      const resdata = await response.json();
+      if (endpoint === '/getRecommendations') {
+        console.log(resdata);
+        setData(resdata);
+      } else {
+        setData(resdata);
+        console.log(resdata)
+      }
     } catch (error) {
       console.error("Error fetching recommendations:", error);
     }
