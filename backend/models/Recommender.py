@@ -1,99 +1,95 @@
 import numpy as np
+import random
 from sklearn.metrics.pairwise import cosine_similarity
+from concurrent.futures import ThreadPoolExecutor
 from .Embeddings import EmbeddingModel
 from utils.preprocessing import parse_mastodon_post
 from mastodon import Mastodon
 
 
 class Recommender:
-    """
-    Generates recommendations based on user's favorite posts and public timeline posts.
-    """
-
     def __init__(self, mastodon: Mastodon):
         self.mastodon = mastodon
         self.embeddingModel = EmbeddingModel()
+        self.embedding_cache = {}
 
-    def get_similar_posts(self):
-        """
-        Get similar posts based on user favorites.
-        :param top_n: Number of recommendations to return.
-        :param limit: Number of public posts to analyze.
-        :return: A list of recommended posts with similarity scores.
-        """
-        # Fetch favorited posts and public timeline
+    def get_similar_posts(self, limit=1000, top_n=40):
+        # Fetch favorited posts
         favorited_posts = self.mastodon.favourites()
-        public_posts = self.mastodon.timeline_public()
 
-        # Generate embeddings for favorited posts
-        favorite_embeddings = []
-        for post in favorited_posts:
-            data = parse_mastodon_post(post)
-            text_emb = (
-                self.embeddingModel.generate_text_embedding(data["text"])
-                if data["text"]
-                else None
-            )
-            img_embs = [
-                self.embeddingModel.generate_image_embedding(url)
-                for url in data["media_urls"]
-            ]
-            combined_emb = self._combine_embeddings(text_emb, img_embs)
-            if combined_emb is not None:
-                favorite_embeddings.append(combined_emb)
+        # Fetch and filter public posts
+        public_posts = self._fetch_public_posts(limit)
+        public_posts = self._filter_posts(public_posts)
 
-        # Generate embeddings for public timeline
-        public_embeddings = []
-        for post in public_posts:
-            data = parse_mastodon_post(post)
-            text_emb = (
-                self.embeddingModel.generate_text_embedding(data["text"])
-                if data["text"]
-                else None
-            )
-            img_embs = [
-                self.embeddingModel.generate_image_embedding(url)
-                for url in data["media_urls"]
-            ]
-            combined_emb = self._combine_embeddings(text_emb, img_embs)
-            public_embeddings.append((post, combined_emb))
+        # Generate embeddings for favorited and public posts
+        favorite_embeddings = self._generate_favorite_embeddings(favorited_posts)
+        public_embeddings = self._generate_public_embeddings(public_posts)
 
-        # Compute similarity scores
-        recommendations = self._compute_similarities(
-            favorite_embeddings, public_embeddings
-        )
-        # return recommendations[:top_n]
-        return recommendations[:10]
+        # Compute similarities and return recommendations
+        recommendations = self._compute_similarities(favorite_embeddings, public_embeddings)
+        top_recommendations = recommendations[:top_n]
+        # Randomness for diversity
+        for _ in range(4):
+            random_recommendation = np.random.choice(recommendations)
+            top_recommendations.append(random_recommendation)
+        return random.shuffle(top_recommendations)
+
+    def _fetch_public_posts(self, limit):
+        posts = []
+        max_id = None
+        while len(posts) < limit:
+            batch = self.mastodon.timeline_local(max_id=max_id, limit=min(40, limit - len(posts)))
+            if not batch:
+                break
+            posts.extend(batch)
+            max_id = batch[-1]["id"]
+        return posts
+
+    def _filter_posts(self, posts):
+        seen_content = set()
+        return [
+            post for post in posts
+            if post.get("language", None) == "en" and post.get("content", "").strip() not in seen_content
+        ]
+
+    def _generate_favorite_embeddings(self, favorited_posts):
+        return [
+            self._get_or_compute_embedding(post)
+            for post in favorited_posts if self._get_or_compute_embedding(post) is not None
+        ]
+
+    def _generate_public_embeddings(self, public_posts):
+        with ThreadPoolExecutor(max_workers=8) as executor:
+            return list(executor.map(
+                lambda post: (post, self._get_or_compute_embedding(post)),
+                public_posts
+            ))
+
+    def _get_or_compute_embedding(self, post):
+        post_id = post["id"]
+        if post_id in self.embedding_cache:
+            return self.embedding_cache[post_id]
+
+        data = parse_mastodon_post(post)
+        text_emb = self.embeddingModel.generate_text_embedding(data["text"]) if data["text"] else None
+        img_embs = [self.embeddingModel.generate_image_embedding(url) for url in data["media_urls"]]
+        combined_emb = self._combine_embeddings(text_emb, img_embs)
+
+        self.embedding_cache[post_id] = combined_emb
+        return combined_emb
 
     def _combine_embeddings(self, text_embedding=None, image_embeddings=[]):
-        """
-        Combine text and image embeddings.
-        :param text_embedding: Text embedding vector.
-        :param image_embeddings: List of image embedding vectors.
-        :return: Combined embedding vector.
-        """
         embeddings = []
         if text_embedding is not None:
-            embeddings.append(text_embedding)
-        embeddings.extend(image_embeddings)
+            embeddings.append(text_embedding / np.linalg.norm(text_embedding))
+        embeddings.extend(img / np.linalg.norm(img) for img in image_embeddings if np.linalg.norm(img) > 0)
         return np.mean(embeddings, axis=0) if embeddings else None
 
     def _compute_similarities(self, favorite_embeddings, public_embeddings):
-        """
-        Compute similarity scores between favorite embeddings and public embeddings.
-        :param favorite_embeddings: List of embeddings for favorited posts.
-        :param public_embeddings: List of tuples (post, embedding) for public posts.
-        :return: Sorted list of posts by highest similarity.
-        """
-        recommendations = []
-        for post, public_embedding in public_embeddings:
-            if public_embedding is not None:
-                max_similarity = max(
-                    cosine_similarity([public_embedding], [fav_emb])[0][0]
-                    for fav_emb in favorite_embeddings
-                )
-                recommendations.append({"post": post, "similarity": max_similarity})
-        
-        # Sort recommendations by similarity and extract only posts
-        sorted_posts = [rec["post"] for rec in sorted(recommendations, key=lambda x: x["similarity"], reverse=True)]
-        return sorted_posts
+        public_data = [(post, emb) for post, emb in public_embeddings if emb is not None]
+        public_posts, public_embeds = zip(*public_data) if public_data else ([], [])
+        public_embeds = np.array(public_embeds)
+
+        scores = cosine_similarity(public_embeds, favorite_embeddings).mean(axis=1)
+        recommendations = sorted(zip(public_posts, scores), key=lambda x: x[1], reverse=True)
+        return [post for post, _ in recommendations]
