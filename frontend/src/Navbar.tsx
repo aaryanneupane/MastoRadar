@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import './Navbar.css';
 
 interface NavbarProps {
-  setCurrentPage: (page: "Home" | "Explore" | "MastoRadar" | "Live" | "Login") => void;
+  setCurrentPage: (page: "Home" | "Explore" | "MastoRadar" | "Recommended Ultra" | "Live" | "Login") => void;
   loggedIn: boolean;
   userId: string | null;
   userName: string | null;
@@ -17,7 +17,7 @@ const Navbar: React.FC<NavbarProps> = ({
   userName,
   handleLogout,
 }: {
-  setCurrentPage: (page: "Home" | "Explore" | "MastoRadar" | "Live" | "Login") => void;
+  setCurrentPage: (page: "Home" | "Explore" | "MastoRadar" | "Recommended Ultra" |  "Live" | "Login") => void;
   loggedIn: boolean;
   userId: string | null;
   userName: string | null;
@@ -31,6 +31,7 @@ const Navbar: React.FC<NavbarProps> = ({
         <li><Link to="/" onClick={() => setCurrentPage("Home")}><span className="icon">🏠</span> Home</Link></li>
         <li><Link to="/explore" onClick={() => setCurrentPage("Explore")}><span className="icon">🔍</span> Explore</Link></li>
         <li><Link to="/recommended" onClick={() => setCurrentPage("MastoRadar")}><span className="icon">📡</span> MastoRadar</Link></li>
+        <li><Link to="/recommendedUltra" onClick={() => setCurrentPage("Recommended Ultra")}><span className="icon">⭐</span> Recommended Ultra</Link></li>
         <li><Link to="/live" onClick={() => setCurrentPage("Live")}><span className="icon">📺</span> Live Feed</Link></li>
         <div className="nav-item login-status">
         {loggedIn ? (

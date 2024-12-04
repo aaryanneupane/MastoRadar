@@ -70,7 +70,7 @@ async def getUser(request: Request):
     access_token = request.query_params.get("access_token")
     if not access_token:
         raise HTTPException(status_code=400, detail="Access token is required")
-
+    global mastodon
     mastodon = Mastodon(
         access_token=access_token,
         api_base_url=os.getenv("MASTODON_API_BASE_URL")
@@ -96,9 +96,18 @@ def logout():
     authenticated = False
     return {"message": "Logged out successfully"}
 
-@app.get("/getPublicTimeline")
-def getPublicTimeline():
-    return unauthorized_mastodon.timeline_public()
+# @app.get("/getPublicTimeline")
+# def getPublicTimeline():
+#     return unauthorized_mastodon.timeline_public()¨
+
+@app.get("/getExploreTimeline")
+async def getPublicTimeline():
+    async with httpx.AsyncClient() as client:
+        response = await client.get(
+            'https://mastodon.social/api/v1/trends/statuses',
+        )
+        response.raise_for_status()  # Raise an exception for HTTP errors
+        return response.json()
 
 @app.get("/getLocalTimeline")
 def getLocalTimeline():
@@ -115,10 +124,30 @@ def getHomeTimeline():
 async def getRecommendedTimeline():
   if authenticated:
     async with httpx.AsyncClient(timeout=30.0) as client:
-        response = await client.get('http://192.168.86.157:8000/getRecommendations')
+
+        #Explore page, swap out with recommendation api
+        response = await client.get(
+            'https://mastodon.social/api/v1/trends/statuses',
+        )
+        response.raise_for_status()
+
+        #response = await client.get('http://192.168.86.157:8000/getRecommendations')
         return response.json()
   else:
     raise HTTPException(status_code=400, detail="Not authenticated")
 
-# API for explore page:
-# 'https://mastodon.social/api/v1/trends/statuses'
+@app.get("/getRecommendedUltraTimeline")
+async def getRecommendedTimeline():
+  if authenticated:
+    async with httpx.AsyncClient(timeout=30.0) as client:
+
+       #Explore page, swap out with recommendation api
+        response = await client.get(
+            'https://mastodon.social/api/v1/trends/statuses',
+        )
+        response.raise_for_status()
+        #response = await client.get('http://192.168.86.157:8000/getRecommendationsUltra')
+        return response.json()
+  else:
+    raise HTTPException(status_code=400, detail="Not authenticated")
+

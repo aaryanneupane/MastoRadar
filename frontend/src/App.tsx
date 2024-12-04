@@ -21,32 +21,32 @@ interface Post {
 
 function App() {
   const [data, setData] = useState<Post[]>([]);
-  const [maxPages, setMaxPages] = useState(10);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState<"Home" | "Explore" | "MastoRadar" | "Live" | "Login" | "Authenticated">('Home');
+  const [currentPage, setCurrentPage] = useState<"Home" | "Explore" | "MastoRadar" | "Recommended Ultra" | "Live" | "Login" | "Authenticated">('Home');
   const [loggedIn, setLoggedIn] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [userName, setUserName] = useState<string | null>(null);
-
   const navigate = useNavigate();
 
+
   useEffect(() => {
-    console.log("currently logged in:", loggedIn);
     const token = localStorage.getItem("access_token");
     if (token) {
       setLoggedIn(true);
       fetchUser(token).then(({ user_id, username }) => {
         setUserId(user_id);
         setUserName(username);
-      });      
-      
+      });
       console.log("User is logged in with token:", token);
     } else {
       console.log("No access token found, user is not logged in");
-      setLoggedIn(false); 
+      setLoggedIn(false);
     }
+  }, []);
 
+  useEffect(() => {
     if (currentPage === 'Home') {
+      console.log('time to check loggedin:', loggedIn);
       navigate('/');
       if (loggedIn) {
         console.log('Fetching Home');
@@ -55,26 +55,30 @@ function App() {
     } else if (currentPage === 'Explore') {
       console.log('Fetching Explore');
       navigate('/explore');
-      //No direct API endpint for Explore, so we fetch the Public Timeline for now
-      //TODO: Implement Explore endpoint with correct map to show in timeline (api url is in app.py)
-      fetcher('/getPublicTimeline');
+      fetcher('/getExploreTimeline');
     } else if (currentPage === 'MastoRadar') {
       navigate('/recommended');
       if (loggedIn) {
         console.log('Fetching MastoRadar');
         fetcher('/getRecommendedTimeline');
       }
-    } else if (currentPage === 'Live') {
+    } else if (currentPage === 'Recommended Ultra') {
+      if (loggedIn) {
+        console.log('Fetching Recommended Ultra');
+        navigate('/recommendedUltra');
+        fetcher('/getRecommendedUltraTimeline');
+      }
+    }
+    else if (currentPage === 'Live') {
       console.log('Fetching Live Feed (.social)');
       navigate('/live');
       fetcher('/getLocalTimeline');
     } else if (currentPage === 'Login') {
       login();
     }
-  }, [maxPages, currentPage]);
+  }, [currentPage]);
 
   
-
   const fetcher = async (endpoint: string) => {
     try {
       const response = await fetch(`http://127.0.0.1:8000${endpoint}`, {
@@ -91,9 +95,27 @@ function App() {
     }
   };
 
-  const fetchMorePages = () => {
-    setMaxPages(maxPages + 10); // Increment by 10 each time "Show More" is clicked
+  const refresh = () => {
+    console.log('Refreshing content for page:', currentPage);
+  
+    // Trigger fetching directly based on the current page
+    if (currentPage === 'Home') {
+      if (loggedIn) {
+        fetcher('/getHomeTimeline');
+      }
+    } else if (currentPage === 'Explore') {
+      fetcher('/getExploreTimeline');
+    } else if (currentPage === 'MastoRadar') {
+      if (loggedIn) {
+        fetcher('/getRecommendedTimeline');
+      }
+    } else if (currentPage === 'Recommended Ultra') {
+      fetcher('/getRecommendedUltraTimeline');
+    } else if (currentPage === 'Live') {
+      fetcher('/getLocalTimeline');
+    }
   };
+  
 
   const selectImage = (imageUrl: string) => setSelectedImage(imageUrl);
 
@@ -166,12 +188,13 @@ function App() {
       <div className="app-container">
         <div className="feed-container">
           <Routes>
-            <Route path="/" element={<Feed data={data} selectImage={selectImage} selectedImage={selectedImage} setSelectedImage={setSelectedImage} fetchMorePages={fetchMorePages} loggedIn={loggedIn} title="🏠Home"/>} />
-            <Route path="/explore" element={<Feed data={data} selectImage={selectImage} selectedImage={selectedImage} setSelectedImage={setSelectedImage} fetchMorePages={fetchMorePages} loggedIn={loggedIn} title="🔍Explore"/>} />
-            <Route path="/recommended" element={<Feed data={data} selectImage={selectImage} selectedImage={selectedImage} setSelectedImage={setSelectedImage} fetchMorePages={fetchMorePages} loggedIn={loggedIn} title="📡Recommended"/>} />
-            <Route path="/live" element={<Feed data={data} selectImage={selectImage} selectedImage={selectedImage} setSelectedImage={setSelectedImage} fetchMorePages={fetchMorePages} loggedIn={loggedIn} title="📺Live"/>} />
+            <Route path="/" element={<Feed data={data} selectImage={selectImage} selectedImage={selectedImage} setSelectedImage={setSelectedImage} refresh={refresh} loggedIn={loggedIn} title="🏠Home"/>} />
+            <Route path="/explore" element={<Feed data={data} selectImage={selectImage} selectedImage={selectedImage} setSelectedImage={setSelectedImage} refresh={refresh} loggedIn={loggedIn} title="🔍Explore"/>} />
+            <Route path="/recommended" element={<Feed data={data} selectImage={selectImage} selectedImage={selectedImage} setSelectedImage={setSelectedImage} refresh={refresh} loggedIn={loggedIn} title="📡Recommended"/>} />
+            <Route path="/recommendedUltra" element={<Feed data={data} selectImage={selectImage} selectedImage={selectedImage} setSelectedImage={setSelectedImage} refresh={refresh} loggedIn={loggedIn} title="⭐Recommended Ultra"/>} />
+            <Route path="/live" element={<Feed data={data} selectImage={selectImage} selectedImage={selectedImage} setSelectedImage={setSelectedImage} refresh={refresh} loggedIn={loggedIn} title="📺Live"/>} />
             <Route path="/login" element={<div>Redirecting to Mastodon...</div>} />
-            <Route path="/authenticated" element={<div><Authenticated/></div>} /> 
+            <Route path="/authenticated" element={<div><Authenticated setCurrentPage={setCurrentPage} /></div>} /> 
           </Routes>
         </div>
         <Navbar
@@ -190,7 +213,7 @@ const Feed = ({
   selectImage,
   selectedImage,
   setSelectedImage,
-  fetchMorePages,
+  refresh,
   title,
   loggedIn,
 }: {
@@ -198,12 +221,12 @@ const Feed = ({
   selectImage: (imageUrl: string) => void;
   selectedImage: string | null;
   setSelectedImage: (imageUrl: string | null) => void;
-  fetchMorePages: () => void;
+  refresh: () => void;
   title: string;
   loggedIn: boolean;
 }) => {
   // Determine if the tab requires login
-  const requiresLogin = title === "📡Recommended" || title === "🏠Home";
+  const requiresLogin = title === "📡Recommended" || title === "🏠Home" || title === "⭐Recommended Ultra";
   const isDisabled = requiresLogin && !loggedIn;
 
   return (
@@ -215,10 +238,16 @@ const Feed = ({
       }`}
     >
       {/* Title */}
-      <h1 className="text-3xl font-bold text-center mb-6">
+      <h1 className="text-3xl font-bold text-center">
         {isDisabled ? `${title} (Please log in)` : title}
       </h1>
-
+      {!isDisabled && (<button
+            className="blue-900 text-white px-1 py-0.5 rounded-lg mt-2 mb-2 hover:blue-900 transition-colors font-semibold"
+            onClick={refresh}
+          >
+            Refresh content
+          </button>)
+          }
       {/* Content */}
       {isDisabled ? (
         <p className="text-center mt-4">Please log in to view this content.</p>
@@ -252,12 +281,6 @@ const Feed = ({
               ))}
             </div>
           ))}
-          <button
-            className="bg-blue-500 text-white px-4 py-2 rounded-lg mt-6 hover:bg-blue-600 transition-colors font-semibold"
-            onClick={fetchMorePages}
-          >
-            Show More
-          </button>
           {selectedImage && (
             <ImageViewer imageUrl={selectedImage} onClose={() => setSelectedImage(null)} />
           )}
