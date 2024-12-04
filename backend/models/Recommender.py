@@ -5,12 +5,13 @@ from concurrent.futures import ThreadPoolExecutor
 from .Embeddings import EmbeddingModel
 from utils.preprocessing import parse_mastodon_post
 from mastodon import Mastodon
-
+from .KeywordExtractor import KeywordExtractor
 
 class Recommender:
     def __init__(self, mastodon: Mastodon):
         self.mastodon = mastodon
         self.embeddingModel = EmbeddingModel()
+        self.keywordExtractor = KeywordExtractor()
         self.embedding_cache = {}
 
     def get_similar_posts(self, limit=1000, top_n=40):
@@ -147,3 +148,32 @@ class Recommender:
         # Rank posts by similarity score
         recommendations = sorted(zip(public_posts, scores), key=lambda x: x[1], reverse=True)
         return [post for post, _ in recommendations]
+
+# Keyword Recommender
+
+    def KeywordRecommender(self, limit=1000, top_n=40) -> list:
+        recommendations = []
+        userLikes = self.mastodon.favourites()
+        likedKeywords = self.__extractKeywords(userLikes)
+
+        # Fetch the public timeline with the specified number of pages
+        publicTimeline = self._fetch_public_posts(limit)
+
+        # Add only new matches to avoid duplication
+        for post in publicTimeline:
+            if self.__postMatchesUserPreferences(post, likedKeywords) and post not in recommendations:
+                recommendations.append(post)
+
+        return recommendations[:top_n]
+
+    def __extractKeywords(self, posts) -> list:
+        keywords = []
+        for post in posts:
+            content = post['content']
+            keywords.extend(self.keywordExtractor.extractKeywords(content))
+        print(f"Extracted keywords: {keywords}") 
+        return keywords
+
+    def __postMatchesUserPreferences(self, post, likedKeywords) -> bool:
+        postKeywords = self.__extractKeywords([post])
+        return any(keyword in postKeywords for keyword in likedKeywords)
