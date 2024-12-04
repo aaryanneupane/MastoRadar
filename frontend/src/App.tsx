@@ -16,7 +16,7 @@ interface Post {
   media_attachments: {
     url: string;
     description: string;
-  }[];
+  };
 }
 
 function App() {
@@ -86,10 +86,14 @@ function App() {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-
-      const resdata: Post[] = await response.json();
-      setData(resdata);
-
+      const resdata = await response.json();
+      if (endpoint === '/getRecommendations') {
+        console.log(resdata);
+        setData(resdata);
+      } else {
+        setData(resdata);
+        console.log(resdata)
+      }
     } catch (error) {
       console.error("Error fetching recommendations:", error);
     }
