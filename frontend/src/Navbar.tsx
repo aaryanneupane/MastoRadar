@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import './Navbar.css';
 
 interface NavbarProps {
-  setCurrentPage: (page: "Home" | "Explore" | "MastoRadar" | "Recommended Ultra" | "Live" | "Login") => void;
+  setCurrentPage: (page: "Following" | "Timeline B" | "Timeline A" | "Timeline C" | "Live" | "Login") => void;
   loggedIn: boolean;
   userId: string | null;
   userName: string | null;
@@ -17,7 +17,7 @@ const Navbar: React.FC<NavbarProps> = ({
   userName,
   handleLogout,
 }: {
-  setCurrentPage: (page: "Home" | "Explore" | "MastoRadar" | "Recommended Ultra" |  "Live" | "Login") => void;
+  setCurrentPage: (page: "Following" | "Timeline B" | "Timeline A" | "Timeline C" | "Live" | "Login") => void;
   loggedIn: boolean;
   userId: string | null;
   userName: string | null;
@@ -28,10 +28,10 @@ const Navbar: React.FC<NavbarProps> = ({
           <img src="src/assets/radar.svg" alt="Logo" />
         </Link>
       <ul className="navbar-links">
-        <li><Link to="/" onClick={() => setCurrentPage("Home")}><span className="icon">🏠</span> Home</Link></li>
-        <li><Link to="/explore" onClick={() => setCurrentPage("Explore")}><span className="icon">🔍</span> Explore</Link></li>
-        <li><Link to="/recommended" onClick={() => setCurrentPage("MastoRadar")}><span className="icon">📡</span> MastoRadar</Link></li>
-        <li><Link to="/recommendedUltra" onClick={() => setCurrentPage("Recommended Ultra")}><span className="icon">⭐</span> Recommended Ultra</Link></li>
+        <li><Link to="/" onClick={() => setCurrentPage("Following")}><span className="icon">👥</span> Following</Link></li>
+        <li><Link to="/timelineA" onClick={() => setCurrentPage("Timeline A")}><span className="icon">📡</span> Timeline A</Link></li>
+        <li><Link to="/timelineB" onClick={() => setCurrentPage("Timeline B")}><span className="icon">🔍</span> Timeline B</Link></li>
+        <li><Link to="/timelineC" onClick={() => setCurrentPage("Timeline C")}><span className="icon">⭐</span> Timeline C</Link></li>
         <li><Link to="/live" onClick={() => setCurrentPage("Live")}><span className="icon">📺</span> Live Feed</Link></li>
         <div className="nav-item login-status">
         {loggedIn ? (

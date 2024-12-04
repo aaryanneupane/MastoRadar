@@ -22,7 +22,7 @@ interface Post {
 function App() {
   const [data, setData] = useState<Post[]>([]);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState<"Home" | "Explore" | "MastoRadar" | "Recommended Ultra" | "Live" | "Login" | "Authenticated">('Home');
+  const [currentPage, setCurrentPage] = useState<"Following" | "Timeline B" | "Timeline A" | "Timeline C" | "Live" | "Login" | "Authenticated">('Live');
   const [loggedIn, setLoggedIn] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [userName, setUserName] = useState<string | null>(null);
@@ -45,27 +45,29 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (currentPage === 'Home') {
+    if (currentPage === 'Following') {
       console.log('time to check loggedin:', loggedIn);
       navigate('/');
       if (loggedIn) {
-        console.log('Fetching Home');
+        console.log('Fetching Following');
         fetcher('/getHomeTimeline');
       }
-    } else if (currentPage === 'Explore') {
-      console.log('Fetching Explore');
-      navigate('/explore');
-      fetcher('/getExploreTimeline');
-    } else if (currentPage === 'MastoRadar') {
-      navigate('/recommended');
+    } else if (currentPage === 'Timeline B') {
+      navigate('/timelineB');
       if (loggedIn) {
-        console.log('Fetching MastoRadar');
+      console.log('Fetching Timeline B');
+      fetcher('/getExploreTimeline');
+      }
+    } else if (currentPage === 'Timeline A') {
+      navigate('/timelineA');
+      if (loggedIn) {
+        console.log('Fetching Timeline A');
         fetcher('/getRecommendedTimeline');
       }
-    } else if (currentPage === 'Recommended Ultra') {
+    } else if (currentPage === 'Timeline C') {
       if (loggedIn) {
-        console.log('Fetching Recommended Ultra');
-        navigate('/recommendedUltra');
+        console.log('Fetching Timeline C');
+        navigate('/timelineC');
         fetcher('/getRecommendedUltraTimeline');
       }
     }
@@ -99,18 +101,22 @@ function App() {
     console.log('Refreshing content for page:', currentPage);
   
     // Trigger fetching directly based on the current page
-    if (currentPage === 'Home') {
+    if (currentPage === 'Following') {
       if (loggedIn) {
         fetcher('/getHomeTimeline');
       }
-    } else if (currentPage === 'Explore') {
+    } else if (currentPage === 'Timeline B') {
+      if (loggedIn) {
       fetcher('/getExploreTimeline');
-    } else if (currentPage === 'MastoRadar') {
+      }
+    } else if (currentPage === 'Timeline A') {
       if (loggedIn) {
         fetcher('/getRecommendedTimeline');
       }
-    } else if (currentPage === 'Recommended Ultra') {
-      fetcher('/getRecommendedUltraTimeline');
+    } else if (currentPage === 'Timeline C') {
+      if (loggedIn) {
+        fetcher('/getRecommendedUltraTimeline');
+      }
     } else if (currentPage === 'Live') {
       fetcher('/getLocalTimeline');
     }
@@ -180,7 +186,7 @@ function App() {
     setLoggedIn(false);
     setUserId(null);
     setUserName(null);
-    setCurrentPage('Explore');
+    setCurrentPage('Live');
   };
 
   
@@ -188,10 +194,10 @@ function App() {
       <div className="app-container">
         <div className="feed-container">
           <Routes>
-            <Route path="/" element={<Feed data={data} selectImage={selectImage} selectedImage={selectedImage} setSelectedImage={setSelectedImage} refresh={refresh} loggedIn={loggedIn} title="🏠Home"/>} />
-            <Route path="/explore" element={<Feed data={data} selectImage={selectImage} selectedImage={selectedImage} setSelectedImage={setSelectedImage} refresh={refresh} loggedIn={loggedIn} title="🔍Explore"/>} />
-            <Route path="/recommended" element={<Feed data={data} selectImage={selectImage} selectedImage={selectedImage} setSelectedImage={setSelectedImage} refresh={refresh} loggedIn={loggedIn} title="📡Recommended"/>} />
-            <Route path="/recommendedUltra" element={<Feed data={data} selectImage={selectImage} selectedImage={selectedImage} setSelectedImage={setSelectedImage} refresh={refresh} loggedIn={loggedIn} title="⭐Recommended Ultra"/>} />
+            <Route path="/" element={<Feed data={data} selectImage={selectImage} selectedImage={selectedImage} setSelectedImage={setSelectedImage} refresh={refresh} loggedIn={loggedIn} title="👥Following"/>} />
+            <Route path="/timelineB" element={<Feed data={data} selectImage={selectImage} selectedImage={selectedImage} setSelectedImage={setSelectedImage} refresh={refresh} loggedIn={loggedIn} title="🔷Timeline B"/>} />
+            <Route path="/timelineA" element={<Feed data={data} selectImage={selectImage} selectedImage={selectedImage} setSelectedImage={setSelectedImage} refresh={refresh} loggedIn={loggedIn} title="🔷Timeline A"/>} />
+            <Route path="/timelineC" element={<Feed data={data} selectImage={selectImage} selectedImage={selectedImage} setSelectedImage={setSelectedImage} refresh={refresh} loggedIn={loggedIn} title="🔷Timeline C"/>} />
             <Route path="/live" element={<Feed data={data} selectImage={selectImage} selectedImage={selectedImage} setSelectedImage={setSelectedImage} refresh={refresh} loggedIn={loggedIn} title="📺Live"/>} />
             <Route path="/login" element={<div>Redirecting to Mastodon...</div>} />
             <Route path="/authenticated" element={<div><Authenticated setCurrentPage={setCurrentPage} /></div>} /> 
@@ -226,7 +232,7 @@ const Feed = ({
   loggedIn: boolean;
 }) => {
   // Determine if the tab requires login
-  const requiresLogin = title === "📡Recommended" || title === "🏠Home" || title === "⭐Recommended Ultra";
+  const requiresLogin = title === "🔷Timeline A" || title === "👥Following" || title === "🔷Timeline C" || title === "🔷Timeline B";
   const isDisabled = requiresLogin && !loggedIn;
 
   return (

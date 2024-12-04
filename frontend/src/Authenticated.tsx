@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 
 interface AuthenticatedProps {
-  setCurrentPage: (page: "Home" | "Explore" | "MastoRadar" | "Recommended Ultra" | "Live" | "Login") => void;
+  setCurrentPage: (page: "Following" | "Timeline B" | "Timeline A" | "Timeline C" | "Live" | "Login" | "Authenticated") => void;
 }
 
 const Authenticated: React.FC<AuthenticatedProps> = ({ setCurrentPage }) => {
@@ -13,7 +13,7 @@ const Authenticated: React.FC<AuthenticatedProps> = ({ setCurrentPage }) => {
     const storedToken = localStorage.getItem("access_token");
     if (storedToken) {
       console.log("Access token already stored, redirecting to Home...");
-      setCurrentPage("Home");
+      setCurrentPage("Following");
       return;
     }
     
@@ -28,7 +28,7 @@ const Authenticated: React.FC<AuthenticatedProps> = ({ setCurrentPage }) => {
 
       // Redirect to the main page
       console.log("Redirecting now...");
-      setCurrentPage("Home");
+      setCurrentPage("Following");
     } else {
       console.error("Access token not found in URL");
     }
