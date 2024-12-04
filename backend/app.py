@@ -1,4 +1,3 @@
-from typing import Union
 from mastodon import Mastodon
 from fastapi import FastAPI, HTTPException, Request, Query
 from fastapi.responses import RedirectResponse
@@ -30,8 +29,6 @@ unauthorized_mastodon = Mastodon(
     api_base_url=os.getenv("MASTODON_API_BASE_URL")
 )
 
-recommender = Recommender(mastodon)
-
 def numpy_to_python(obj):
     """
     Recursively convert numpy types to Python types for JSON serialization.
@@ -60,23 +57,16 @@ def getRecommendations():
     :return: List of recommended posts.
     """
     try:
-        recommendations = recommender.get_similar_posts()
-        safe_recommendations = numpy_to_python(recommendations)
-        return safe_recommendations
-
+        if authenticated:
+            recommender = Recommender(mastodon)
+            recommendations = recommender.get_similar_posts()
+            safe_recommendations = numpy_to_python(recommendations)
+            print(f"Recommendations: {safe_recommendations}")  # Debugging
+            return safe_recommendations
+        else:
+            raise HTTPException(status_code=400, detail="Not authenticated")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error generating recommendations: {str(e)}")
-
-
-@app.get("/setApi")
-def setApi():
-    global mastodon
-    try:  
-        mastodon.app_verify_credentials()
-        global data
-        data = DataFetcher(mastodon)
-        return {"message": "Successfully connected to API"}
-    return {"Hello": "World"}
 
 @app.get("/login")
 def login():
@@ -168,15 +158,10 @@ def getHomeTimeline():
 async def getRecommendedTimeline():
   if authenticated:
     async with httpx.AsyncClient(timeout=30.0) as client:
-
-        #Explore page, swap out with recommendation api
-        response = await client.get(
-            'https://mastodon.social/api/v1/trends/statuses',
-        )
-        response.raise_for_status()
-
-        #response = await client.get('http://192.168.86.157:8000/getRecommendations')
-        return response.json()
+            recommender = Recommender(mastodon)
+            recommendations = recommender.get_similar_posts()
+            safe_recommendations = numpy_to_python(recommendations)
+            return safe_recommendations
   else:
     raise HTTPException(status_code=400, detail="Not authenticated")
 
