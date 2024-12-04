@@ -169,14 +169,9 @@ async def getRecommendedTimeline():
 async def getRecommendedTimeline():
   if authenticated:
     async with httpx.AsyncClient(timeout=30.0) as client:
-
-       #Explore page, swap out with recommendation api
-        response = await client.get(
-            'https://mastodon.social/api/v1/trends/statuses',
-        )
-        response.raise_for_status()
-        #response = await client.get('http://192.168.86.157:8000/getRecommendationsUltra')
-        return response.json()
+            recommender = Recommender(mastodon)
+            recommendations = recommender.KeywordRecommender()
+            safe_recommendations = numpy_to_python(recommendations)
+            return safe_recommendations
   else:
     raise HTTPException(status_code=400, detail="Not authenticated")
-
