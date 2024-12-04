@@ -171,7 +171,6 @@ class Recommender:
         for post in posts:
             content = post['content']
             keywords.extend(self.keywordExtractor.extractKeywords(content))
-        print(f"Extracted keywords: {keywords}") 
         return keywords
 
     def __postMatchesUserPreferences(self, post, likedKeywords) -> bool:
