@@ -39,6 +39,8 @@ cd frontend
 npm run dev
 ```
 
+Visit http://localhost:5173/ (or http://127.0.0.1:8000 to test the APIs directly)
+
 ## Contributing
 
 Pull requests are welcome.
