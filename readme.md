@@ -3,16 +3,43 @@
 
 MastoRadar provides a decentralized recommender system for Mastodon, allowing users to explore an additional timeline of toots recommended for themselves based on interractions.
 
-## Timelines mapped to Mastadon.social website
+Timelines provided on our MastoRadar instance:
+- Home timeline - The same as the native timeline of people and hashtags the user follow
+- Explore timeline - The same as the native explore timeline
+- MastoRadar timeline - A content-based filtering recommender system fetching recommended toots for the user
+- Recommended Ultra - A keyword extraction recommender system fetching recommended toots for the user
 
-- **Home timeline can be fetched from**: `mastodon.timeline_home()`
-- **Live Feed - "All" can be fetched from**: `mastodon.timeline_public()`
-- **Live Feed - "This server" can be fetched from**: `mastodon.timeline_local()`
-- **The Explore page cannot be fetched as a viewable timeline directly, but can be fetched as a JSON from**:
+## Installation
 
-```javascript
-  fetch('https://mastodon.social/api/v1/trends/statuses', {
-    headers: {
-      Authorization: `Bearer ACCESS-TOKEN`,
-    },
-  })
+Use the package manager [pip](https://pip.pypa.io/en/stable/) to install the backend requirements and the package manager [npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm) to install the frontend requirements.
+
+
+Frontend:
+```bash
+cd frontend
+npm install
+npm run build
+```
+
+## Usage
+
+Backend
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate (MAC)
+.\venv\Scripts\activate (WIN)
+pip install -r requirements.txt
+fastapi dev app.py
+```
+
+Frontend:
+```bash
+cd frontend
+npm run dev
+```
+
+## Contributing
+
+Pull requests are welcome.
+
